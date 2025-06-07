@@ -1,52 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aurocord</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurocord</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- AUTH AREA -->
-  <div id="auth">
-    <div class="modal">
-      <h2>Aurocord Login</h2>
-      <input id="email" class="input" placeholder="Email" type="email">
-      <input id="password" class="input" placeholder="Password" type="password">
-      <input id="username" class="input" placeholder="Display Name (Register only)" type="text">
-      <input id="pfp" class="input" type="file" accept="image/*">
-      <button class="button" onclick="login()">Login</button>
-      <button class="button" onclick="register()">Register</button>
+    <!-- AUTH AREA -->
+    <div id="auth">
+        <div class="modal">
+            <h2>Aurocord Login</h2>
+            <input id="email" class="input" placeholder="Email" type="email">
+            <input id="password" class="input" placeholder="Password" type="password">
+            <input id="username" class="input" placeholder="Display Name (Register only)" type="text">
+            <input id="pfp" class="input" type="file" accept="image/*">
+            <button class="button" onclick="login()">Login</button>
+            <button class="button" onclick="register()">Register</button>
+        </div>
     </div>
-  </div>
 
-  <!-- CHAT AREA -->
-  <div id="chat" class="hidden">
-    <header>
-      <h1 id="chatHeader">Chat</h1>
-    </header>
+    <!-- CHAT AREA -->
+    <div id="chat" class="hidden">
+        <header>
+            <h1 id="chatHeader">Chat</h1>
+        </header>
 
-    <main class="feed">
-      <section>
-        <h2>Friends</h2>
-        <input id="friendSearch" class="input" placeholder="Search username...">
-        <button class="button" onclick="addFriend()">Add Friend</button>
-        <div id="friendsList"></div>
-      </section>
+        <main class="feed">
+            <section>
+                <h2>Friends</h2>
+                <input id="friendSearch" class="input" placeholder="Search username...">
+                <button class="button" onclick="addFriend()">Add Friend</button>
+                <div id="friendsList"></div>
+            </section>
 
-      <section>
-        <h2>Messages</h2>
-        <div id="messages" class="chat-messages"></div>
-        <input id="messageInput" class="input" placeholder="Type a message...">
-        <button class="button" onclick="sendMessage()">Send</button>
-        <button class="button" onclick="createGroup()">New Group</button>
-      </section>
-    </main>
-  </div>
+            <section>
+                <h2>Messages</h2>
+                <div id="messages" class="chat-messages"></div>
+                <input id="messageInput" class="input" placeholder="Type a message...">
+                <button class="button" onclick="sendMessage()">Send</button>
+                <button class="button" onclick="createGroup()">New Group</button>
+            </section>
+        </main>
+    </div>
 
-  <script src="script.js" type="module"></script>
+    <script src="app.js" type="module"></script>
 </body>
 </html>
