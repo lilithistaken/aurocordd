@@ -4,49 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aurocord</title>
+    <!-- Load Tailwind CSS for utility classes (layout, spacing, flexbox) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <!-- Font for better aesthetics, complementing your 'gg sans' fallback -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <!-- AUTH AREA -->
-    <div id="auth">
-        <div class="modal">
-            <h2>Aurocord Login</h2>
-            <input id="email" class="input" placeholder="Email" type="email">
-            <input id="password" class="input" placeholder="Password" type="password">
-            <input id="username" class="input" placeholder="Display Name (Register only)" type="text">
-            <input id="pfp" class="input" type="file" accept="image/*">
-            <button class="button" onclick="login()">Login</button>
-            <button class="button" onclick="register()">Register</button>
+<body class="bg-background-primary font-inter text-text-primary min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
+
+    <!-- AUTH AREA - Initially visible, centers content -->
+    <div id="auth" class="w-full max-w-sm flex justify-center items-center h-full">
+        <div class="modal bg-background-tertiary rounded-lg shadow-xl p-8 w-full">
+            <h2 class="text-2xl font-bold text-center mb-6">Aurocord Login</h2>
+            <!-- Message area for auth feedback -->
+            <p id="authStatusMessage" class="status-message text-center mb-4"></p>
+
+            <div class="mb-4">
+                <label for="email" class="block text-text-secondary text-sm font-medium mb-1">Email:</label>
+                <input id="email" class="input w-full p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="your@email.com" type="email">
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block text-text-secondary text-sm font-medium mb-1">Password:</label>
+                <input id="password" class="input w-full p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="••••••••" type="password">
+            </div>
+            <div class="mb-6">
+                <label for="username" class="block text-text-secondary text-sm font-medium mb-1">Display Name (Register only):</label>
+                <input id="username" class="input w-full p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="e.g., AuraUser" type="text">
+            </div>
+            <!-- PFP input is present but functionality will be implemented later with Firebase Storage -->
+            <div class="mb-6">
+                <label for="pfp" class="block text-text-secondary text-sm font-medium mb-1">Profile Picture (Optional):</label>
+                <input id="pfp" class="input-file w-full text-text-primary bg-background-secondary rounded-md" type="file" accept="image/*">
+            </div>
+
+            <div class="flex flex-col space-y-3">
+                <button id="loginButton" class="button bg-background-accent text-white p-3 rounded-md font-semibold hover:bg-green-600 transition-colors">Login</button>
+                <button id="registerButton" class="button bg-background-modifier-active text-text-primary p-3 rounded-md font-semibold hover:bg-gray-700 transition-colors">Register</button>
+            </div>
         </div>
     </div>
 
-    <!-- CHAT AREA -->
-    <div id="chat" class="hidden">
-        <header>
-            <h1 id="chatHeader">Chat</h1>
+    <!-- CHAT AREA - Initially hidden -->
+    <div id="chat" class="hidden w-full max-w-4xl bg-background-secondary rounded-lg shadow-xl p-6 flex flex-col h-[calc(100vh-2rem)] sm:h-[calc(100vh-4rem)] md:h-[calc(100vh-6rem)]">
+        <header class="flex justify-between items-center bg-background-tertiary p-4 rounded-t-lg border-b border-border-color mb-4">
+            <h1 id="chatHeader" class="text-2xl font-bold text-text-primary">Aurocord Chat</h1>
+            <div class="flex items-center space-x-4">
+                <p id="currentUserIdDisplay" class="text-text-muted text-sm font-mono"></p>
+                <button id="logoutButton" class="button bg-red-600 text-white p-2 rounded-md font-semibold hover:bg-red-700 transition-colors">Logout</button>
+            </div>
         </header>
 
-        <main class="feed">
-            <section>
-                <h2>Friends</h2>
-                <input id="friendSearch" class="input" placeholder="Search username...">
-                <button class="button" onclick="addFriend()">Add Friend</button>
-                <div id="friendsList"></div>
+        <main class="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 overflow-hidden">
+            <!-- Friends Section -->
+            <section class="flex flex-col bg-background-tertiary rounded-md p-4 overflow-hidden col-span-1">
+                <h2 class="text-xl font-semibold text-text-primary mb-3">Friends</h2>
+                <p id="friendsStatusMessage" class="status-message text-sm text-center mb-2"></p>
+                <div class="mb-4">
+                    <input id="friendSearch" class="input w-full p-2 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="Search username...">
+                </div>
+                <button id="addFriendButton" class="button bg-background-modifier-active text-text-primary p-2 rounded-md font-semibold hover:bg-gray-700 transition-colors mb-4">Add Friend</button>
+                <div id="friendsList" class="flex-grow overflow-y-auto custom-scrollbar-y pr-2">
+                    <!-- Friends will be dynamically added here -->
+                    <p class="text-text-muted text-sm text-center py-4">No friends added yet. Search for users above!</p>
+                </div>
             </section>
 
-            <section>
-                <h2>Messages</h2>
-                <div id="messages" class="chat-messages"></div>
-                <input id="messageInput" class="input" placeholder="Type a message...">
-                <button class="button" onclick="sendMessage()">Send</button>
-                <button class="button" onclick="createGroup()">New Group</button>
+            <!-- Messages Section -->
+            <section class="flex flex-col bg-background-tertiary rounded-md p-4 overflow-hidden col-span-1 sm:col-span-2">
+                <h2 class="text-xl font-semibold text-text-primary mb-3">Messages</h2>
+                <p id="chatStatusMessage" class="status-message text-sm text-center mb-2"></p>
+                <div id="messages" class="flex-grow overflow-y-auto custom-scrollbar-y pr-2 mb-4 space-y-2">
+                    <!-- Messages will be dynamically added here -->
+                    <p class="text-text-muted text-sm text-center py-4">Select a friend or start a group chat!</p>
+                </div>
+                <div class="flex items-center space-x-2 mt-auto">
+                    <input id="messageInput" class="input flex-grow p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="Type a message...">
+                    <button id="sendMessageButton" class="button bg-background-accent text-white p-3 rounded-md font-semibold hover:bg-green-600 transition-colors">Send</button>
+                    <button id="createGroupButton" class="button bg-background-modifier-active text-text-primary p-3 rounded-md font-semibold hover:bg-gray-700 transition-colors">New Group</button>
+                </div>
             </section>
         </main>
     </div>
 
+    <!-- Link to your main application JavaScript -->
     <script src="app.js" type="module"></script>
 </body>
 </html>
