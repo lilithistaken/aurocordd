@@ -21,7 +21,10 @@ function fileToBase64(file) {
   });
 }
 
+
 async function register() {
+  try {
+
   const username = document.getElementById('username').value;
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
@@ -33,10 +36,17 @@ async function register() {
 
   await db.collection('users').doc(uid).set({ username, avatarURL, friends: [] });
 
-  login(); // auto-login
+      login(); // auto-login
+  } catch (err) {
+    alert('Register error: ' + err.message);
+    console.error(err);
+  }
 }
 
+
 async function login() {
+  try {
+
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
 
@@ -47,7 +57,11 @@ async function login() {
 
   document.getElementById('auth').classList.add('hidden');
   document.getElementById('chat').classList.remove('hidden');
-  loadFriends();
+      loadFriends();
+  } catch (err) {
+    alert('Login error: ' + err.message);
+    console.error(err);
+  }
 }
 
 async function addFriend() {
@@ -64,7 +78,11 @@ async function addFriend() {
       await db.collection('users').doc(friendId).update({
         friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
       });
-      loadFriends();
+          loadFriends();
+  } catch (err) {
+    alert('Login error: ' + err.message);
+    console.error(err);
+  }
     }
   } else {
     alert("User not found");

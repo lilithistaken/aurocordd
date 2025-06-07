@@ -9,10 +9,10 @@
   <div id="app">
     <div id="auth">
       <h2>Register / Login</h2>
-      <input id="username" placeholder="Username" />
-      <input id="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Password" />
-      <input type="file" id="pfp" />
+      <input id="username" placeholder="Username" required />
+      <input id="email" type="email" placeholder="Email" required />
+      <input id="password" type="password" placeholder="Password" required />
+      <input type="file" id="pfp" accept="image/*" />
       <button onclick="register()">Register</button>
       <button onclick="login()">Login</button>
     </div>
@@ -40,6 +40,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
-  <script src="app.js"></script>
+  <script src="app.js" defer></script>
 </body>
 </html>

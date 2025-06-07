@@ -143,3 +143,15 @@ button:hover {
   font-size: 16px;
   padding: 10px;
 }
+
+#auth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 50px;
+}
+#auth input, #auth button {
+  width: 80%;
+  max-width: 300px;
+  margin: 8px 0;
+}
