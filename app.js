@@ -16,11 +16,14 @@ import {
     doc,
     setDoc,
     getDoc,
-    collection, // Explicitly imported collection
+    collection,
     query,
     where,
     getDocs,
-    onSnapshot
+    onSnapshot,
+    addDoc, // Needed for adding messages
+    orderBy, // Needed for ordering messages by timestamp
+    serverTimestamp // Needed for consistent timestamps
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
     getStorage,
@@ -50,12 +53,15 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 
-// Global state variables for the current user
+// Global state variables for the current user and active chat
 let currentUserId = null;
 let currentDisplayName = null;
 let currentUserEmail = null;
 let currentUserPhotoURL = null;
-let unsubscribeFriends = null;
+let unsubscribeFriends = null; // Listener for friends list
+let unsubscribeMessages = null; // Listener for chat messages
+let selectedFriendId = null; // The ID of the friend whose chat is currently open
+let selectedFriendDisplayName = null; // Display name of the friend whose chat is currently open
 
 
 // --- UI Element References ---
@@ -215,6 +221,11 @@ onAuthStateChanged(auth, async (user) => {
             unsubscribeFriends = null;
             console.log("Unsubscribed from friends listener on logout.");
         }
+        if (unsubscribeMessages) {
+            unsubscribeMessages();
+            unsubscribeMessages = null;
+            console.log("Unsubscribed from messages listener on logout.");
+        }
     }
 });
 
@@ -313,7 +324,6 @@ function listenForFriends() {
     }
     console.log(`Listening for friends for user: ${currentUserId}`);
 
-    // Path: /artifacts/{appId}/users/{currentUserId}/friends/{friendId}
     const friendsCollectionRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'friends');
 
     if (unsubscribeFriends) {
@@ -341,12 +351,7 @@ function listenForFriends() {
             friendsListDiv.appendChild(friendItem);
 
             friendItem.addEventListener('click', () => {
-                console.log("Selected friend:", friendData.displayName, friendData.userId);
-                document.querySelectorAll('.friend-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                friendItem.classList.add('active');
-                showMessage(chatStatusMessage, `Chatting with ${friendData.displayName}`, 'info');
+                selectFriendForChat(friendData.userId, friendData.displayName);
             });
         });
         showMessage(friendsStatusMessage, `Loaded ${snapshot.size} friends.`, 'info');
@@ -373,8 +378,6 @@ async function addFriend() {
 
     try {
         console.log(`Searching for user with display name: "${friendSearchUsername}"`);
-        // Query the new public_user_search_profiles collection
-        // Path: /artifacts/{appId}/public/data/user_search_profiles
         const publicProfilesCollection = collection(db, 'artifacts', appId, 'public', 'data', 'user_search_profiles');
         const q = query(publicProfilesCollection, where('displayName', '==', friendSearchUsername));
         const querySnapshot = await getDocs(q);
@@ -400,7 +403,6 @@ async function addFriend() {
             return;
         }
 
-        // Check if already friends
         const existingFriendDocRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'friends', friendId);
         const existingFriendDoc = await getDoc(existingFriendDocRef);
         if (existingFriendDoc.exists()) {
@@ -408,7 +410,6 @@ async function addFriend() {
             return;
         }
 
-        // Add mutual friendship records
         const userFriendsRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'friends', friendId);
         const friendFriendsRef = doc(db, 'artifacts', appId, 'users', friendId, 'friends', currentUserId);
 
@@ -431,7 +432,109 @@ async function addFriend() {
     }
 }
 
-// --- Message Sending (Placeholder function) ---
+// --- Messaging Functions ---
+
+/**
+ * Generates a consistent conversation ID for a direct chat between two users.
+ * The ID is formed by sorting the two UIDs to ensure consistency.
+ * @param {string} uid1 - User ID 1.
+ * @param {string} uid2 - User ID 2.
+ * @returns {string} The conversation ID.
+ */
+function getConversationId(uid1, uid2) {
+    // Sort UIDs alphabetically to create a consistent conversation ID
+    return [uid1, uid2].sort().join('_');
+}
+
+/**
+ * Selects a friend to chat with and loads their messages.
+ * @param {string} friendId - The UID of the friend to chat with.
+ * @param {string} friendDisplayName - The display name of the friend.
+ */
+function selectFriendForChat(friendId, friendDisplayName) {
+    if (!currentUserId) {
+        showMessage(chatStatusMessage, "Please log in to chat.", 'error');
+        return;
+    }
+
+    selectedFriendId = friendId;
+    selectedFriendDisplayName = friendDisplayName;
+    console.log(`Selected chat with: ${selectedFriendDisplayName} (ID: ${selectedFriendId})`);
+
+    // Highlight the selected friend in the friends list UI
+    document.querySelectorAll('.friend-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.friendId === friendId) {
+            item.classList.add('active');
+        }
+    });
+
+    messagesDiv.innerHTML = ''; // Clear previous messages
+    showMessage(chatStatusMessage, `Loading chat with ${selectedFriendDisplayName}...`, 'info');
+
+    // Get the conversation ID for this chat
+    const conversationId = getConversationId(currentUserId, selectedFriendId);
+
+    // Start listening for messages in this conversation
+    listenForMessages(conversationId);
+
+    // Enable message input field
+    messageInput.disabled = false;
+    messageInput.focus();
+}
+
+/**
+ * Listens for real-time messages in a given conversation.
+ * @param {string} conversationId - The ID of the conversation to listen to.
+ */
+function listenForMessages(conversationId) {
+    if (unsubscribeMessages) {
+        unsubscribeMessages(); // Unsubscribe from previous chat's messages
+        console.log("Unsubscribed from previous messages listener.");
+    }
+
+    // Messages path: /artifacts/{appId}/public/chats/{conversationId}/messages/{messageId}
+    const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'chats', conversationId, 'messages');
+    const q = query(messagesCollectionRef, orderBy('timestamp')); // Order messages by timestamp
+
+    unsubscribeMessages = onSnapshot(q, (snapshot) => {
+        console.log(`Messages updated for conversation ${conversationId}. Number of messages: ${snapshot.size}`);
+        messagesDiv.innerHTML = ''; // Clear current messages before re-rendering
+        if (snapshot.empty) {
+            messagesDiv.innerHTML = '<p class="text-text-muted text-sm text-center py-4">No messages yet. Say hello!</p>';
+            return;
+        }
+
+        snapshot.forEach(docSnap => {
+            const messageData = docSnap.data();
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+
+            if (messageData.senderId === currentUserId) {
+                messageElement.classList.add('self');
+            } else {
+                messageElement.classList.add('other');
+            }
+
+            const senderDisplayName = messageData.senderDisplayName || 'Unknown User';
+            const messageText = messageData.text || '';
+            const timestamp = messageData.timestamp ? new Date(messageData.timestamp.toDate()).toLocaleTimeString() : 'N/A';
+
+            messageElement.innerHTML = `
+                <strong class="font-semibold">${senderDisplayName}</strong> <span class="text-xs text-text-muted">(${timestamp})</span><br>
+                ${messageText}
+            `;
+            messagesDiv.appendChild(messageElement);
+        });
+
+        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom of messages
+        showMessage(chatStatusMessage, `Chat loaded with ${selectedFriendDisplayName}`, 'success');
+    }, (error) => {
+        console.error("Error listening to messages:", error);
+        showMessage(chatStatusMessage, `Error loading chat: ${error.message}`, 'error');
+    });
+}
+
 async function sendMessage() {
     const messageText = messageInput.value.trim();
 
@@ -443,16 +546,30 @@ async function sendMessage() {
         showMessage(chatStatusMessage, "Please log in to send messages.", 'error');
         return;
     }
+    if (!selectedFriendId) {
+        showMessage(chatStatusMessage, "Please select a friend to chat with first.", 'error');
+        return;
+    }
 
-    console.log(`Sending message: "${messageText}" from ${currentDisplayName || currentUserId}`);
-    showMessage(chatStatusMessage, "Message sent (placeholder).", 'success');
-    messageInput.value = '';
+    try {
+        const conversationId = getConversationId(currentUserId, selectedFriendId);
+        // Messages path: /artifacts/{appId}/public/chats/{conversationId}/messages
+        const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'chats', conversationId, 'messages');
 
-    const newMessage = document.createElement('div');
-    newMessage.classList.add('message', 'self');
-    newMessage.innerHTML = `<strong>${currentDisplayName || 'You'}</strong>: ${messageText}`;
-    messagesDiv.appendChild(newMessage);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        await addDoc(messagesCollectionRef, {
+            senderId: currentUserId,
+            senderDisplayName: currentDisplayName || currentUserEmail,
+            text: messageText,
+            timestamp: serverTimestamp() // Use Firestore server timestamp
+        });
+
+        console.log(`Message sent to ${selectedFriendDisplayName}: "${messageText}"`);
+        messageInput.value = ''; // Clear input field
+        // Messages will appear via the onSnapshot listener, no manual append needed
+    } catch (error) {
+        console.error("Error sending message:", error);
+        showMessage(chatStatusMessage, `Failed to send message: ${error.message}`, 'error');
+    }
 }
 
 // --- Group Creation (Placeholder function) ---
@@ -493,7 +610,7 @@ async function saveSettings() {
     const user = auth.currentUser;
 
     if (!user) {
-        showMessage(settingsStatusMessage, "Not logged in.", 'error'); // Corrected message element
+        showMessage(settingsStatusMessage, "Not logged in.", 'error');
         return;
     }
 
@@ -540,7 +657,7 @@ async function saveSettings() {
         // Update public search profile
         await updatePublicUserProfile(currentUserId, currentDisplayName, currentUserEmail, currentUserPhotoURL);
 
-        showMessage(chatStatusMessage, "Settings saved successfully!", 'success'); // Show success in chat main area
+        showMessage(chatStatusMessage, "Settings saved successfully!", 'success');
         closeSettingsModal();
     } catch (error) {
         console.error("Error saving settings:", error);
