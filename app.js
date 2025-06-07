@@ -25,13 +25,14 @@ import {
     orderBy, // Needed for ordering messages by timestamp
     serverTimestamp // Needed for consistent timestamps
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL,
-    deleteObject
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+// Firebase Storage imports removed
+// import {
+//     getStorage,
+//     ref,
+//     uploadBytes,
+//     getDownloadURL,
+//     deleteObject
+// } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 
 
 // --- Global Variables (provided by the Canvas environment or defaults) ---
@@ -50,18 +51,19 @@ const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
+// Firebase Storage initialization removed
+// const storage = getStorage(app);
 
 
 // Global state variables for the current user and active chat
 let currentUserId = null;
 let currentDisplayName = null;
 let currentUserEmail = null;
-let currentUserPhotoURL = null;
-let unsubscribeFriends = null; // Listener for friends list
-let unsubscribeMessages = null; // Listener for chat messages
-let selectedFriendId = null; // The ID of the friend whose chat is currently open
-let selectedFriendDisplayName = null; // Display name of the friend whose chat is currently open
+let currentUserPhotoURL = null; // Still holds value if photoURL is part of auth profile, but won't be set by app
+let unsubscribeFriends = null;
+let unsubscribeMessages = null;
+let selectedFriendId = null;
+let selectedFriendDisplayName = null;
 
 
 // --- UI Element References ---
@@ -70,7 +72,7 @@ const chatSection = document.getElementById('chat');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const usernameInput = document.getElementById('username');
-const pfpInput = document.getElementById('pfp');
+// const pfpInput = document.getElementById('pfp'); // Removed
 const authStatusMessage = document.getElementById('authStatusMessage');
 const chatStatusMessage = document.getElementById('chatStatusMessage');
 const friendsStatusMessage = document.getElementById('friendsStatusMessage');
@@ -82,8 +84,8 @@ const messageInput = document.getElementById('messageInput');
 // Settings Modal elements
 const settingsModal = document.getElementById('settingsModal');
 const newUsernameInput = document.getElementById('newUsername');
-const newPfpInput = document.getElementById('newPfp');
-const currentProfilePic = document.getElementById('currentProfilePic');
+// const newPfpInput = document.getElementById('newPfp'); // Removed
+// const currentProfilePic = document.getElementById('currentProfilePic'); // Removed
 const settingsStatusMessage = document.getElementById('settingsStatusMessage');
 
 
@@ -132,7 +134,7 @@ function toggleUI(loggedIn) {
         emailInput.value = '';
         passwordInput.value = '';
         usernameInput.value = '';
-        if (pfpInput) pfpInput.value = '';
+        // if (pfpInput) pfpInput.value = ''; // Removed
 
         console.log("UI switched to Chat view.");
     } else {
@@ -152,10 +154,9 @@ function toggleUI(loggedIn) {
  * @param {string} uid - The user's UID.
  * @param {string} displayName - The user's display name.
  * @param {string} email - The user's email.
- * @param {string|null} photoURL - The user's photo URL.
+ * // @param {string|null} photoURL - The user's photo URL. // Removed
  */
-async function updatePublicUserProfile(uid, displayName, email, photoURL) {
-    // Correct way to build the document reference for public user search profiles:
+async function updatePublicUserProfile(uid, displayName, email) {
     // Path: /artifacts/{appId}/public/data/user_search_profiles/{uid}
     const publicProfilesCollection = collection(db, 'artifacts', appId, 'public', 'data', 'user_search_profiles');
     const publicProfileRef = doc(publicProfilesCollection, uid);
@@ -164,7 +165,7 @@ async function updatePublicUserProfile(uid, displayName, email, photoURL) {
             uid: uid,
             displayName: displayName || 'Unnamed User',
             email: email,
-            photoURL: photoURL || null,
+            // photoURL: photoURL || null, // Removed
             lastUpdated: new Date().toISOString()
         }, { merge: true });
         console.log(`Public user profile for ${displayName} (${uid}) updated successfully.`);
@@ -182,7 +183,7 @@ onAuthStateChanged(auth, async (user) => {
         currentUserId = user.uid;
         currentDisplayName = user.displayName;
         currentUserEmail = user.email;
-        currentUserPhotoURL = user.photoURL;
+        currentUserPhotoURL = user.photoURL; // Still holds value from auth, but not managed by app
 
         console.log("User logged in:", user.uid, user.email, user.displayName);
 
@@ -194,7 +195,7 @@ onAuthStateChanged(auth, async (user) => {
                 uid: user.uid,
                 email: user.email,
                 displayName: user.displayName || 'Unnamed User',
-                photoURL: user.photoURL || null,
+                photoURL: user.photoURL || null, // Still store from auth if available
                 lastLogin: new Date().toISOString()
             }, { merge: true });
             console.log("Private user profile updated/created in Firestore.");
@@ -204,7 +205,7 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         // Also update the public search profile
-        await updatePublicUserProfile(currentUserId, currentDisplayName, currentUserEmail, currentUserPhotoURL);
+        await updatePublicUserProfile(currentUserId, currentDisplayName, currentUserEmail); // photoURL argument removed
 
         toggleUI(true);
         listenForFriends();
@@ -290,11 +291,11 @@ async function register() {
             uid: user.uid,
             email: user.email,
             displayName: username,
-            photoURL: null,
+            photoURL: null, // Always null for new registrations without storage
             registeredAt: new Date().toISOString()
         });
 
-        await updatePublicUserProfile(user.uid, username, email, null);
+        await updatePublicUserProfile(user.uid, username, email); // photoURL argument removed
 
         showMessage(authStatusMessage, "Registered successfully! You are now logged in.", 'success');
         console.log("Registration successful.");
@@ -489,17 +490,16 @@ function selectFriendForChat(friendId, friendDisplayName) {
  */
 function listenForMessages(conversationId) {
     if (unsubscribeMessages) {
-        unsubscribeMessages(); // Unsubscribe from previous chat's messages
+        unsubscribeMessages();
         console.log("Unsubscribed from previous messages listener.");
     }
 
-    // Messages path: /artifacts/{appId}/public/chats/{conversationId}/messages/{messageId}
-    const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'chats', conversationId, 'messages');
-    const q = query(messagesCollectionRef, orderBy('timestamp')); // Order messages by timestamp
+    const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', conversationId, 'messages');
+    const q = query(messagesCollectionRef, orderBy('timestamp'));
 
     unsubscribeMessages = onSnapshot(q, (snapshot) => {
         console.log(`Messages updated for conversation ${conversationId}. Number of messages: ${snapshot.size}`);
-        messagesDiv.innerHTML = ''; // Clear current messages before re-rendering
+        messagesDiv.innerHTML = '';
         if (snapshot.empty) {
             messagesDiv.innerHTML = '<p class="text-text-muted text-sm text-center py-4">No messages yet. Say hello!</p>';
             return;
@@ -527,7 +527,7 @@ function listenForMessages(conversationId) {
             messagesDiv.appendChild(messageElement);
         });
 
-        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom of messages
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
         showMessage(chatStatusMessage, `Chat loaded with ${selectedFriendDisplayName}`, 'success');
     }, (error) => {
         console.error("Error listening to messages:", error);
@@ -553,19 +553,17 @@ async function sendMessage() {
 
     try {
         const conversationId = getConversationId(currentUserId, selectedFriendId);
-        // Messages path: /artifacts/{appId}/public/chats/{conversationId}/messages
-        const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'chats', conversationId, 'messages');
+        const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', conversationId, 'messages');
 
         await addDoc(messagesCollectionRef, {
             senderId: currentUserId,
             senderDisplayName: currentDisplayName || currentUserEmail,
             text: messageText,
-            timestamp: serverTimestamp() // Use Firestore server timestamp
+            timestamp: serverTimestamp()
         });
 
         console.log(`Message sent to ${selectedFriendDisplayName}: "${messageText}"`);
-        messageInput.value = ''; // Clear input field
-        // Messages will appear via the onSnapshot listener, no manual append needed
+        messageInput.value = '';
     } catch (error) {
         console.error("Error sending message:", error);
         showMessage(chatStatusMessage, `Failed to send message: ${error.message}`, 'error');
@@ -588,25 +586,26 @@ function openSettingsModal() {
         return;
     }
     newUsernameInput.value = currentDisplayName || '';
-    if (currentUserPhotoURL) {
-        currentProfilePic.src = currentUserPhotoURL;
-        currentProfilePic.classList.remove('hidden');
-    } else {
-        currentProfilePic.classList.add('hidden');
-    }
+    // Profile picture display and input removed
+    // if (currentUserPhotoURL) {
+    //     currentProfilePic.src = currentUserPhotoURL;
+    //     currentProfilePic.classList.remove('hidden');
+    // } else {
+    //     currentProfilePic.classList.add('hidden');
+    // }
     settingsModal.classList.remove('hidden');
     console.log("Settings modal opened.");
 }
 
 function closeSettingsModal() {
     settingsModal.classList.add('hidden');
-    newPfpInput.value = '';
+    // newPfpInput.value = ''; // Removed
     console.log("Settings modal closed.");
 }
 
 async function saveSettings() {
     const newUsername = newUsernameInput.value.trim();
-    const newPhotoFile = newPfpInput.files[0];
+    // const newPhotoFile = newPfpInput.files[0]; // Removed
     const user = auth.currentUser;
 
     if (!user) {
@@ -614,7 +613,7 @@ async function saveSettings() {
         return;
     }
 
-    let photoURLToUpdate = currentUserPhotoURL;
+    // let photoURLToUpdate = currentUserPhotoURL; // Removed
     let updatePromises = [];
 
     // 1. Update Username
@@ -624,25 +623,8 @@ async function saveSettings() {
         currentDisplayName = newUsername;
     }
 
-    // 2. Update Profile Picture
-    if (newPhotoFile) {
-        console.log("New profile picture detected. Uploading...");
-        showMessage(settingsStatusMessage, "Uploading profile picture...", 'info');
-        const fileExtension = newPhotoFile.name.split('.').pop();
-        const storageRef = ref(storage, `profile_pictures/${user.uid}/profile_pic.${fileExtension}`);
-
-        try {
-            const uploadResult = await uploadBytes(storageRef, newPhotoFile);
-            photoURLToUpdate = await getDownloadURL(uploadResult.ref);
-            updatePromises.push(updateProfile(user, { photoURL: photoURLToUpdate }));
-            currentUserPhotoURL = photoURLToUpdate;
-            console.log("Profile picture uploaded. New URL:", photoURLToUpdate);
-        } catch (error) {
-            console.error("Error uploading profile picture:", error);
-            showMessage(settingsStatusMessage, `Failed to upload picture: ${error.message}`, 'error');
-            return;
-        }
-    }
+    // 2. Profile Picture logic removed
+    // if (newPhotoFile) { ... }
 
     try {
         await Promise.all(updatePromises);
@@ -651,11 +633,11 @@ async function saveSettings() {
         const privateProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'profile', 'public');
         await setDoc(privateProfileRef, {
             displayName: currentDisplayName,
-            photoURL: currentUserPhotoURL
+            photoURL: null // Ensure photoURL is explicitly null or remove the field if not needed
         }, { merge: true });
 
         // Update public search profile
-        await updatePublicUserProfile(currentUserId, currentDisplayName, currentUserEmail, currentUserPhotoURL);
+        await updatePublicUserProfile(currentUserId, currentDisplayName, currentUserEmail); // photoURL argument removed
 
         showMessage(chatStatusMessage, "Settings saved successfully!", 'success');
         closeSettingsModal();
