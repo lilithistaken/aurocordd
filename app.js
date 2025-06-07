@@ -1,4 +1,4 @@
-// 🔧 Replace this config with your own from Firebase Console
+
 const firebaseConfig = {
   apiKey: "AIzaSyBkU8GgOP09YYfOmdvpypPRoXYk-SUFqWI",
   authDomain: "chatting-87797.firebaseapp.com",
@@ -108,7 +108,9 @@ function listenForMessages() {
       snapshot.forEach(doc => {
         const msg = doc.data();
         const p = document.createElement('p');
-        p.innerHTML = `<img src="${msg.avatar}" width="25" height="25" /> <strong>${msg.senderName}</strong>: ${msg.text}`;
+       p.classList.add(msg.sender === currentUser.uid ? 'me' : ''); // add 'me' class for current user
+p.innerHTML = `<img src="${msg.avatar}" /> <span><strong>${msg.senderName}</strong>: ${msg.text}</span>`;
+
         messagesDiv.appendChild(p);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
       });
