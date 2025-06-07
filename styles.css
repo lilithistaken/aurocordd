@@ -1,0 +1,41 @@
+body {
+  font-family: sans-serif;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+#app {
+  width: 90%;
+  max-width: 1000px;
+}
+input, button {
+  margin: 5px;
+}
+.hidden {
+  display: none;
+}
+.sidebar {
+  float: left;
+  width: 25%;
+  border-right: 1px solid #ccc;
+}
+.main {
+  float: right;
+  width: 70%;
+}
+#messages {
+  height: 400px;
+  overflow-y: scroll;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+.input {
+  display: flex;
+}
+.input input {
+  flex: 1;
+}
+img {
+  vertical-align: middle;
+  border-radius: 50%;
+}

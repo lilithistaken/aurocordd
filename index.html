@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Firebase Chat App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <div id="auth">
+      <h2>Register / Login</h2>
+      <input id="username" placeholder="Username" />
+      <input id="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <input type="file" id="pfp" />
+      <button onclick="register()">Register</button>
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div id="chat" class="hidden">
+      <div class="sidebar">
+        <input id="friendSearch" placeholder="Search users" />
+        <button onclick="addFriend()">Add Friend</button>
+        <div id="friendsList"></div>
+        <button onclick="createGroup()">+ Group</button>
+      </div>
+      <div class="main">
+        <div id="chatHeader"></div>
+        <div id="messages"></div>
+        <div class="input">
+          <input id="messageInput" placeholder="Type a message..." />
+          <button onclick="sendMessage()">📨</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script src="app.js"></script>
+</body>
+</html>
