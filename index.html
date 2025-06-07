@@ -1,45 +1,137 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Firebase Chat App</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Aurocord</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <div id="app">
-    <div id="auth">
-      <h2>Register / Login</h2>
-      <input id="username" placeholder="Username" required />
-      <input id="email" type="email" placeholder="Email" required />
-      <input id="password" type="password" placeholder="Password" required />
-      <input type="file" id="pfp" accept="image/*" />
-      <button onclick="register()">Register</button>
-      <button onclick="login()">Login</button>
+    <div id="loading-overlay" class="flex center">
+      <div class="loading-container">
+        <div class="loader"></div>
+        <p class="loading-text">Loading...</p>
+      </div>
     </div>
 
-    <div id="chat" class="hidden">
-      <div class="sidebar">
-        <input id="friendSearch" placeholder="Search users" />
-        <button onclick="addFriend()">Add Friend</button>
-        <div id="friendsList"></div>
-        <button onclick="createGroup()">+ Group</button>
-      </div>
-      <div class="main">
-        <div id="chatHeader"></div>
-        <div id="messages"></div>
-        <div class="input">
-          <input id="messageInput" placeholder="Type a message..." />
-          <button onclick="sendMessage()">📨</button>
+    <div id="auth-modal" class="modal-overlay" style="display:flex;">
+    <div class="modal discord-auth-modal">
+        <img src="img/discord.png" alt="Discord" style="width:48px;margin:0 auto 16px;display:block;">
+        <h2 id="auth-title" style="text-align:center;">Welcome back!</h2>
+        <form id="auth-form" class="discord-auth-form">
+        <div class="input-group">
+            <label for="auth-email">Email or Phone Number</label>
+            <input id="auth-email" type="text" autocomplete="username" required>
         </div>
-      </div>
+        <div class="input-group">
+            <label for="auth-password">Password</label>
+            <input id="auth-password" type="password" autocomplete="current-password" required>
+        </div>
+        <div id="register-extra" style="display:none;">
+            <div class="input-group">
+            <label for="auth-displayname">Display Name</label>
+            <input id="auth-displayname" type="text" autocomplete="nickname">
+            </div>
+        </div>
+        <button id="auth-submit" class="button" type="submit" style="width:100%;margin-top:16px;">Login</button>
+        <div id="auth-error" style="color:#d9534f;display:none;margin-top:8px;text-align:center;"></div>
+        </form>
+        <div style="text-align:center;margin-top:16px;">
+        <span id="toggle-auth-mode" style="color:#7289da;cursor:pointer;">Need an account? Register</span>
+        </div>
+        <div style="text-align:center;margin-top:16px;">
+        <button id="google-signin-btn" class="button" style="background:#fff;color:#23272a;border:1px solid #7289da;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="height:20px;vertical-align:middle;margin-right:8px;">
+            Sign in with Google
+        </button>
+        </div>
     </div>
-  </div>
+    </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <div id="password-modal" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <h2>Enter Password</h2>
+            <form id="password-form" style="margin-top:16px;">
+                <input class="input" id="password-input" type="password" placeholder="Password" required style="width:100%;margin-bottom:12px;">
+                <button class="button" type="submit" style="width:100%;">Continue</button>
+                <p id="password-error" style="color:#d9534f;display:none;margin-top:8px;">Incorrect password. Try again.</p>
+            </form>
+        </div>
+    </div>
 
-  <script src="app.js" defer></script>
+    <div id="username-modal" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <h2>Choose a Username</h2>
+            <form id="username-form" style="margin-top:16px;">
+                <input class="input" id="username-input" type="text" placeholder="Enter your name" required style="width:100%;margin-bottom:12px;">
+                <button class="button" type="submit" style="width:100%;">Continue</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="gif-modal" class="modal-overlay" style="display:none;">
+        <div class="modal" style="max-width:400px;">
+            <h2>Pick a GIF</h2>
+            <input id="gif-search" class="input" type="text" placeholder="Search GIFs..." style="width:100%;margin-bottom:12px;">
+            <div id="gif-results" style="display:flex;flex-wrap:wrap;gap:8px;max-height:300px;overflow-y:auto;"></div>
+            <button class="button" type="button" id="gif-cancel" style="width:100%;margin-top:12px;background:#404249;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <h2>Settings</h2>
+            <form id="settings-form" style="margin-top:16px;">
+                <label style="color:var(--text-secondary);font-size:14px;">Username</label>
+                <input class="input" id="settings-username" type="text" required style="width:100%;margin-bottom:12px;">
+                <label style="color:var(--text-secondary);font-size:14px;">Profile Picture</label>
+                <input id="settings-avatar" type="file" accept="image/*" style="margin-bottom:12px;width:100%;">
+                <div style="margin-bottom:12px;">
+                    <img id="settings-avatar-preview" src="" alt="Preview" style="width:48px;height:48px;border-radius:50%;display:none;">
+                </div>
+                <button class="button" type="submit" style="width:100%;">Save</button>
+                <button class="button" type="button" id="settings-cancel" style="width:100%;margin-top:8px;background:#404249;">Cancel</button>
+            </form>
+        </div>
+    </div> 
+
+
+    
+        <main class="feed">
+
+            <section style="margin-top: 48px;">
+                <h2>CHANNEL</h2>
+                <button id="delete-all-btn" class="button" style="margin-bottom:12px;background:#d9534f;color:#fff;">Delete All</button>
+                <div id="chat-messages" class="chat-messages" style="max-height:300px;overflow-y:auto;margin-bottom:12px;"></div>
+                <form id="chat-form" class="flex" style="gap:8px;">
+                    <input class="input" id="chat-input" type="text" placeholder="Type a message..." autocomplete="off" required style="flex:1;">
+                    <input type="file" id="chat-image" accept="image/*" style="display:none;">
+                    <button class="button" type="button" id="chat-image-btn" title="Attach image" style="padding:0 10px;">📷</button>
+                    <button class="button" type="button" id="chat-gif-btn" title="Send GIF" style="padding:0 10px;">🎬</button>
+                    <button class="button" type="submit">Send</button>
+                </form>
+            </section>
+        </main>
+
+        <aside class="userlist-panel">
+        <div class="userlist-section" id="online-section">
+            <div class="userlist-label">ONLINE — <span id="online-count">0</span></div>
+            <ul id="online-users" class="userlist"></ul>
+        </div>
+        <div class="userlist-section" id="offline-section">
+            <div class="userlist-label">OFFLINE — <span id="offline-count">0</span></div>
+            <ul id="offline-users" class="userlist"></ul>
+        </div>
+    </aside>
+    </div>
+    
+    <footer style="display:none;">
+        <p>@lilithwastaken</p>
+    </footer>
+    <script src="script.js" type="module"></script>
 </body>
 </html>
