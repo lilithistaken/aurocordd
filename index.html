@@ -50,6 +50,7 @@
             <h1 id="chatHeader" class="text-2xl font-bold text-text-primary">Aurocord Chat</h1>
             <div class="flex items-center space-x-4">
                 <p id="currentUserIdDisplay" class="text-text-muted text-sm font-mono"></p>
+                <button id="openSettingsButton" class="button bg-blue-600 text-white p-2 rounded-md font-semibold hover:bg-blue-700 transition-colors">Settings</button>
                 <button id="logoutButton" class="button bg-red-600 text-white p-2 rounded-md font-semibold hover:bg-red-700 transition-colors">Logout</button>
             </div>
         </header>
@@ -84,6 +85,34 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="modal bg-background-tertiary rounded-lg shadow-xl p-8 w-full max-w-sm">
+            <h2 class="text-2xl font-bold text-center mb-6 text-text-primary">User Settings</h2>
+            <p id="settingsStatusMessage" class="status-message text-center mb-4"></p>
+
+            <div class="mb-4 text-center">
+                <label class="block text-text-secondary text-sm font-medium mb-2">Current Profile Picture:</label>
+                <img id="currentProfilePic" class="rounded-full w-24 h-24 object-cover mx-auto border-2 border-border-color mb-2 hidden" alt="Current Profile Picture">
+            </div>
+
+            <div class="mb-4">
+                <label for="newUsername" class="block text-text-secondary text-sm font-medium mb-1">New Display Name:</label>
+                <input id="newUsername" class="input w-full p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" type="text" placeholder="Enter new username">
+            </div>
+
+            <div class="mb-6">
+                <label for="newPfp" class="block text-text-secondary text-sm font-medium mb-1">Upload New Profile Picture (Optional):</label>
+                <input id="newPfp" class="input-file w-full text-text-primary bg-background-secondary rounded-md" type="file" accept="image/*">
+            </div>
+
+            <div class="flex flex-col space-y-3">
+                <button id="saveSettingsButton" class="button bg-background-accent text-white p-3 rounded-md font-semibold hover:bg-green-600 transition-colors">Save Changes</button>
+                <button id="cancelSettingsButton" class="button bg-background-modifier-active text-text-primary p-3 rounded-md font-semibold hover:bg-gray-700 transition-colors">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <!-- Link to your main application JavaScript -->
