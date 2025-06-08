@@ -1,4 +1,5 @@
-
+// --- Tenor GIF API Key ---
+const TENOR_API_KEY = 'AIzaSyCnoEuNR2jhVdXVu78x1SAb1V9VLgFMye8'; // ← Replace this with your actual key
 
 // Import Firebase modules. Using the modular SDK.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -25,17 +26,25 @@ import {
     orderBy, // Needed for ordering messages by timestamp
     serverTimestamp // Needed for consistent timestamps
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+// Firebase Storage imports removed
+// import {
+//     getStorage,
+//     ref,
+//     uploadBytes,
+//     getDownloadURL,
+//     deleteObject
+// } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-import { firebaseConfig } from "./firebase-config.js";
 
-const app = initializeApp(firebaseConfig);
-
-
-// --- Global Variables ---
+// --- Global Variables (provided by the Canvas environment or defaults) ---
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-
+const firebaseConfig = {
+    apiKey: "AIzaSyBkU8GgOP09YYfOmdvpypPRoXYk-SUFqWI",
+    authDomain: "chatting-87797.firebaseapp.com",
+    projectId: "chatting-87797",
+    appId: "1:767603735256:web:14bf5c7696fa3f7e1835ad",
+};
 
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
@@ -95,7 +104,7 @@ const cancelSettingsButton = document.getElementById('cancelSettingsButton');
 
 /**
  * Displays a message to the user in a specified status area.
- * @param {HTMLElement} element - The HTML element to display the message in.
+ * @param {HTMLElement} element - The HTML element (e.g., authStatusMessage, chatStatusMessage) to display the message in.
  * @param {string} message - The message text to display.
  * @param {string} type - 'success', 'error', or 'info' to determine message color.
  */
@@ -126,6 +135,7 @@ function toggleUI(loggedIn) {
         emailInput.value = '';
         passwordInput.value = '';
         usernameInput.value = '';
+        // if (pfpInput) pfpInput.value = ''; // Removed
 
         console.log("UI switched to Chat view.");
     } else {
@@ -647,6 +657,74 @@ async function saveSettings() {
         showMessage(settingsStatusMessage, `Error saving settings: ${error.message}`, 'error');
     }
 }
+
+// ------------------- Friend Request UI Logic -------------------
+function renderFriendRequest(requesterId, displayName) {
+    const list = document.getElementById('friendRequestsList');
+    const li = document.createElement('li');
+    li.innerHTML = `
+        ${displayName} 
+        <button onclick="acceptFriendRequest('${requesterId}', '${displayName}')">Accept</button>
+        <button onclick="declineFriendRequest('${requesterId}')">Decline</button>
+    `;
+    list.appendChild(li);
+}
+
+function listenForFriendRequests() {
+    if (!currentUserId) return;
+    const requestsRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'friend_requests');
+    onSnapshot(requestsRef, (snapshot) => {
+        const list = document.getElementById('friendRequestsList');
+        list.innerHTML = '';
+        snapshot.forEach(docSnap => {
+            const request = docSnap.data();
+            renderFriendRequest(docSnap.id, request.displayName);
+        });
+    });
+}
+
+// Call this after login
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        listenForFriendRequests();
+    }
+});
+
+// ------------------- Group Chat Logic -------------------
+document.getElementById('createGroupSubmitButton').addEventListener('click', async () => {
+    const groupName = document.getElementById('groupNameInput').value.trim();
+    const memberIdsRaw = document.getElementById('groupMembersInput').value.trim();
+    const memberIds = memberIdsRaw.split(',').map(id => id.trim()).filter(Boolean);
+
+    const groupId = await createGroup(groupName, memberIds);
+    if (groupId) {
+        openGroupChat(groupId, groupName);
+    }
+});
+
+// ------------------- GIF Picker Logic -------------------
+document.getElementById('gifSearchButton').addEventListener('click', async () => {
+    const query = document.getElementById('gifSearchInput').value.trim();
+    const resultsContainer = document.getElementById('gifResults');
+    resultsContainer.innerHTML = 'Searching...';
+
+    try {
+        const gifs = await searchGIFs(query);
+        resultsContainer.innerHTML = '';
+        gifs.forEach(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.width = '100px';
+            img.style.margin = '5px';
+            img.style.cursor = 'pointer';
+            img.onclick = () => insertGifIntoMessage(url);
+            resultsContainer.appendChild(img);
+        });
+    } catch (err) {
+        resultsContainer.innerHTML = 'Failed to load GIFs';
+    }
+});
+
 
 
 // --- Event Listeners ---

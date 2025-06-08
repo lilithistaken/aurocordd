@@ -15,8 +15,6 @@ firebase-adminsdk*.json
 .firebase/
 firebase-debug.log
 .firebaserc
-firebase-config.js
-
 
 # Optional: VSCode settings and logs
 .vscode/
