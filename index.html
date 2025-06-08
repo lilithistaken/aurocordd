@@ -2,127 +2,104 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurocord</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurocord</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 
-<body class="bg-background-primary font-inter text-text-primary min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
-    <!-- AUTH AREA -->
-    <div id="auth" class="w-full max-w-sm flex justify-center items-center h-full">
-        <div class="modal bg-background-tertiary rounded-lg shadow-xl p-8 w-full">
-            <h2 class="text-2xl font-bold text-center mb-6">Aurocord Login</h2>
-            <!-- Message area for auth feedback -->
-            <p id="authStatusMessage" class="status-message text-center mb-4"></p>
-            <div class="mb-4">
-                <label for="email" class="block text-text-secondary text-sm font-medium mb-1">Email:</label>
-                <input id="email" class="input w-full p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="your@email.com" type="email">
-            </div>
-            <div class="mb-4">
-                <label for="password" class="block text-text-secondary text-sm font-medium mb-1">Password:</label>
-                <input id="password" class="input w-full p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="••••••••" type="password">
-            </div>
-            <div class="mb-6">
-                <label for="username" class="block text-text-secondary text-sm font-medium mb-1">Display Name (Register only):</label>
-                <input id="username" class="input w-full p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="e.g., AuraUser" type="text">
-            </div>
-            <div class="flex flex-col space-y-3">
-                <button id="loginButton" class="button bg-background-accent text-white p-3 rounded-md font-semibold hover:bg-green-600 transition-colors">Login</button>
-                <button id="registerButton" class="button bg-background-modifier-active text-text-primary p-3 rounded-md font-semibold hover:bg-gray-700 transition-colors">Register</button>
-            </div>
-        </div>
+<body class="bg-background-primary text-text-primary font-inter min-h-screen flex items-center justify-center p-4">
+  <!-- Auth Section -->
+  <section id="auth" class="w-full max-w-sm">
+    <div class="bg-background-tertiary p-8 rounded-lg shadow-xl">
+      <h2 class="text-2xl font-bold text-center mb-6">Aurocord Login</h2>
+      <p id="authStatusMessage" class="status-message text-center mb-4"></p>
+
+      <div class="mb-4">
+        <label for="email" class="text-sm block mb-1 text-text-secondary">Email</label>
+        <input id="email" type="email" placeholder="your@email.com"
+          class="input w-full p-3 rounded bg-background-secondary border border-border-color focus:outline-none focus:border-background-accent" />
+      </div>
+      <div class="mb-4">
+        <label for="password" class="text-sm block mb-1 text-text-secondary">Password</label>
+        <input id="password" type="password" placeholder="••••••••"
+          class="input w-full p-3 rounded bg-background-secondary border border-border-color focus:outline-none focus:border-background-accent" />
+      </div>
+      <div class="mb-6">
+        <label for="username" class="text-sm block mb-1 text-text-secondary">Display Name (Register only)</label>
+        <input id="username" type="text" placeholder="e.g., AuraUser"
+          class="input w-full p-3 rounded bg-background-secondary border border-border-color focus:outline-none focus:border-background-accent" />
+      </div>
+      <div class="flex flex-col space-y-3">
+        <button id="loginButton"
+          class="button bg-background-accent text-white p-3 rounded font-semibold hover:bg-green-600">Login</button>
+        <button id="registerButton"
+          class="button bg-background-modifier-active text-text-primary p-3 rounded font-semibold hover:bg-gray-700">Register</button>
+      </div>
     </div>
-    <!-- CHAT AREA -->
-    <div id="chat" class="hidden w-full max-w-4xl bg-background-secondary rounded-lg shadow-xl p-6 flex flex-col h-[calc(100vh-2rem)] sm:h-[calc(100vh-4rem)] md:h-[calc(100vh-6rem)]">
-        <header class="flex justify-between items-center bg-background-tertiary p-4 rounded-t-lg border-b border-border-color mb-4">
-            <h1 id="chatHeader" class="text-2xl font-bold text-text-primary">Aurocord Chat</h1>
-            <div class="flex items-center space-x-4">
-                <p id="currentUserIdDisplay" class="text-text-muted text-sm font-mono"></p>
-                <button id="openSettingsButton" class="button bg-blue-600 text-white p-2 rounded-md font-semibold hover:bg-blue-700 transition-colors">Settings</button>
-                <button id="logoutButton" class="button bg-red-600 text-white p-2 rounded-md font-semibold hover:bg-red-700 transition-colors">Logout</button>
-            </div>
-        </header>
-        <!-- Friend Requests UI -->
-        <div id="friendRequestsContainer">
-            <h3>Friend Requests</h3>
-            <ul id="friendRequestsList"></ul>
+  </section>
+
+  <!-- Chat Section (hidden by default) -->
+  <section id="chat" class="hidden w-full max-w-5xl bg-background-secondary rounded-lg shadow-xl p-6 flex flex-col h-[calc(100vh-2rem)]">
+    <header class="flex justify-between items-center bg-background-tertiary p-4 rounded-t-lg border-b border-border-color mb-4">
+      <h1 id="chatHeader" class="text-2xl font-bold">Aurocord Chat</h1>
+      <div class="flex items-center gap-3">
+        <p id="currentUserIdDisplay" class="text-sm text-text-muted font-mono"></p>
+        <button id="openSettingsButton" class="button bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Settings</button>
+        <button id="logoutButton" class="button bg-red-600 text-white p-2 rounded hover:bg-red-700">Logout</button>
+      </div>
+    </header>
+
+    <main class="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-grow">
+      <!-- Friends List -->
+      <aside class="col-span-1 bg-background-tertiary rounded p-4 overflow-hidden">
+        <h2 class="text-xl font-semibold mb-2">Friends</h2>
+        <p id="friendsStatusMessage" class="status-message text-sm text-center"></p>
+        <input id="friendSearch" placeholder="Search username..."
+          class="input w-full p-2 mb-2 rounded bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" />
+        <button id="addFriendButton"
+          class="button bg-background-modifier-active text-text-primary p-2 w-full rounded mb-4 hover:bg-gray-700">Add Friend</button>
+        <div id="friendsList" class="flex-grow overflow-y-auto custom-scrollbar-y pr-2">
+          <p class="text-text-muted text-sm text-center py-4">No friends added yet.</p>
         </div>
-        <!-- Group Chat UI -->
-        <div id="groupChatSection">
-            <input type="text" id="groupNameInput" placeholder="Group Name" />
-            <input type="text" id="groupMembersInput" placeholder="User IDs (comma-separated)" />
-            <button id="createGroupSubmitButton">Create Group</button>
+      </aside>
+
+      <!-- Messages Area -->
+      <section class="col-span-2 flex flex-col bg-background-tertiary rounded p-4">
+        <h2 class="text-xl font-semibold mb-2">Messages</h2>
+        <p id="chatStatusMessage" class="status-message text-sm text-center"></p>
+        <div id="messages" class="flex-grow overflow-y-auto custom-scrollbar-y pr-2 space-y-2 mb-4">
+          <p class="text-text-muted text-sm text-center py-4">Select a friend to start chatting.</p>
         </div>
-        <!-- GIF Picker UI -->
-        <div id="gifPickerSection">
-            <input type="text" id="gifSearchInput" placeholder="Search GIFs..." />
-            <button id="gifSearchButton">Search</button>
-            <div id="gifResults"></div>
+        <div class="flex items-center gap-2">
+          <input id="messageInput" placeholder="Type a message..."
+            class="input flex-grow p-3 rounded bg-background-secondary border border-border-color focus:outline-none focus:border-background-accent" />
+          <button id="sendMessageButton"
+            class="button bg-background-accent text-white p-3 rounded font-semibold hover:bg-green-600">Send</button>
         </div>
-        <main class="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 overflow-hidden">
-            <!-- Friends Section -->
-            <section class="flex flex-col bg-background-tertiary rounded-md p-4 overflow-hidden col-span-1">
-                <h2 class="text-xl font-semibold text-text-primary mb-3">Friends</h2>
-                <p id="friendsStatusMessage" class="status-message text-sm text-center mb-2"></p>
-                <div class="mb-4">
-                    <input id="friendSearch" class="input w-full p-2 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="Search username...">
-                </div>
-                <button id="addFriendButton" class="button bg-background-modifier-active text-text-primary p-2 rounded-md font-semibold hover:bg-gray-700 transition-colors mb-4">Add Friend</button>
-                <div id="friendsList" class="flex-grow overflow-y-auto custom-scrollbar-y pr-2">
-                    <p class="text-text-muted text-sm text-center py-4">No friends added yet. Search for users above!</p>
-                </div>
-            </section>
-            <!-- Messages Section -->
-            <section class="flex flex-col bg-background-tertiary rounded-md p-4 overflow-hidden col-span-1 sm:col-span-2">
-                <h2 class="text-xl font-semibold text-text-primary mb-3">Messages</h2>
-                <p id="chatStatusMessage" class="status-message text-sm text-center mb-2"></p>
-                <div id="messages" class="flex-grow overflow-y-auto custom-scrollbar-y pr-2 mb-4 space-y-2">
-                    <p class="text-text-muted text-sm text-center py-4">Select a friend or start a group chat!</p>
-                </div>
-                <div class="flex items-center space-x-2 mt-auto">
-                    <input id="messageInput" class="input flex-grow p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" placeholder="Type a message...">
-                    <button onclick="openGifPicker()" class="button bg-background-modifier-active text-text-primary p-3 rounded-md font-semibold hover:bg-gray-700 transition-colors">GIF</button>
-                    <button id="sendMessageButton" class="button bg-background-accent text-white p-3 rounded-md font-semibold hover:bg-green-600 transition-colors">Send</button>
-                    <button id="createGroupButton" class="button bg-background-modifier-active text-text-primary p-3 rounded-md font-semibold hover:bg-gray-700 transition-colors">New Group</button>
-                </div>
-            </section>
-        </main>
+      </section>
+    </main>
+  </section>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+    <div class="bg-background-tertiary p-6 rounded-lg shadow-xl w-full max-w-sm">
+      <h2 class="text-xl font-bold text-center mb-4">User Settings</h2>
+      <p id="settingsStatusMessage" class="status-message text-center mb-3"></p>
+      <input id="newUsername" type="text" placeholder="Enter new display name"
+        class="input w-full p-3 rounded bg-background-secondary border border-border-color text-text-primary mb-4 focus:outline-none focus:border-background-accent" />
+      <div class="flex flex-col gap-3">
+        <button id="saveSettingsButton"
+          class="button bg-background-accent text-white p-3 rounded hover:bg-green-600">Save</button>
+        <button id="cancelSettingsButton"
+          class="button bg-background-modifier-active text-text-primary p-3 rounded hover:bg-gray-700">Cancel</button>
+      </div>
     </div>
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-        <div class="modal bg-background-tertiary rounded-lg shadow-xl p-8 w-full max-w-sm">
-            <h2 class="text-2xl font-bold text-center mb-6 text-text-primary">User Settings</h2>
-            <p id="settingsStatusMessage" class="status-message text-center mb-4"></p>
-            <div class="mb-4">
-                <label for="newUsername" class="block text-text-secondary text-sm font-medium mb-1">New Display Name:</label>
-                <input id="newUsername" class="input w-full p-3 rounded-md bg-background-secondary border border-border-color text-text-primary focus:outline-none focus:border-background-accent" type="text" placeholder="Enter new username">
-            </div>
-            <div class="flex flex-col space-y-3">
-                <button id="saveSettingsButton" class="button bg-background-accent text-white p-3 rounded-md font-semibold hover:bg-green-600 transition-colors">Save Changes</button>
-                <button id="cancelSettingsButton" class="button bg-background-modifier-active text-text-primary p-3 rounded-md font-semibold hover:bg-gray-700 transition-colors">Cancel</button>
-            </div>
-        </div>
-    </div>
-    <!-- Friend Requests Modal -->
-    <div id="friendRequestsModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-        <div class="modal bg-background-tertiary rounded-lg shadow-xl p-6 max-w-sm w-full">
-            <h2 class="text-xl font-bold text-text-primary mb-4">Friend Requests</h2>
-            <ul id="friendRequestsList" class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar-y"></ul>
-            <button onclick="closeFriendRequestsModal()" class="mt-4 w-full button bg-background-modifier-active text-text-primary p-2 rounded-md font-semibold hover:bg-gray-700 transition-colors">Close</button>
-        </div>
-    </div>
-    <!-- GIF Picker Modal -->
-    <div id="gifPickerModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-        <div class="bg-background-tertiary p-4 rounded-lg shadow-lg w-full max-w-lg max-h-[80vh] overflow-y-auto">
-            <input id="gifSearchInput" type="text" placeholder="Search GIFs..." class="input w-full p-2 mb-4 rounded bg-background-secondary border border-border-color text-text-primary">
-            <div id="gifResults" class="grid grid-cols-3 gap-3"></div>
-            <button onclick="closeGifPicker()" class="mt-4 w-full button bg-background-modifier-active text-text-primary p-2 rounded-md hover:bg-gray-700">Close</button>
-        </div>
-    </div>
-    <script src="app.js" type="module"></script>
+  </div>
+
+  <script src="app.js" type="module"></script>
 </body>
 
 </html>
