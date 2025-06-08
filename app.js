@@ -386,11 +386,6 @@ async function addFriend() {
         let friendId = null;
         let friendActualDisplayName = null;
 
-        if (querySnapshot.empty) {
-            showMessage(friendsStatusMessage, `User "${friendSearchUsername}" not found. Please ensure the username is exact.`, 'error');
-            return;
-        }
-
         querySnapshot.forEach(docSnap => {
             const data = docSnap.data();
             if (data.uid !== currentUserId) {
@@ -404,34 +399,49 @@ async function addFriend() {
             return;
         }
 
-        const existingFriendDocRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'friends', friendId);
-        const existingFriendDoc = await getDoc(existingFriendDocRef);
+        const userFriendsRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'friends', friendId);
+        const friendFriendsRef = doc(db, 'artifacts', appId, 'users', friendId, 'friends', currentUserId);
+
+        const existingFriendDoc = await getDoc(userFriendsRef);
         if (existingFriendDoc.exists()) {
             showMessage(friendsStatusMessage, `${friendSearchUsername} is already your friend!`, 'info');
             return;
         }
 
-        const userFriendsRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'friends', friendId);
-        const friendFriendsRef = doc(db, 'artifacts', appId, 'users', friendId, 'friends', currentUserId);
-
+        // Add friendship both ways
         await setDoc(userFriendsRef, {
             userId: friendId,
             displayName: friendActualDisplayName,
             addedAt: new Date().toISOString()
         });
+
         await setDoc(friendFriendsRef, {
             userId: currentUserId,
             displayName: currentDisplayName,
             addedAt: new Date().toISOString()
         });
 
+        // Send welcome message to shared conversation
+        const conversationId = getConversationId(currentUserId, friendId);
+        console.log('Conversation ID created:', conversationId);
+
+        const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', conversationId, 'messages');
+        await addDoc(messagesCollectionRef, {
+            senderId: 'system',
+            senderDisplayName: 'Aurocord',
+            text: `${currentDisplayName} and ${friendActualDisplayName} are now connected. Say hi!`,
+            timestamp: serverTimestamp()
+        });
+
         showMessage(friendsStatusMessage, `Friend "${friendActualDisplayName}" added successfully!`, 'success');
         document.getElementById('friendSearch').value = '';
+
     } catch (error) {
         console.error("Error adding friend:", error);
         showMessage(friendsStatusMessage, `Error adding friend: ${error.message}`, 'error');
     }
 }
+
 
 // --- Messaging Functions ---
 
