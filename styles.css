@@ -120,7 +120,7 @@ p {
     margin-bottom: 0.5rem;
     word-wrap: break-word;
     max-width: 90%;
-    color: var(--text-primary);
+    color: #ffffff;
 }
 
 .message.self {
@@ -136,7 +136,7 @@ p {
 
 .message strong {
     font-weight: 600;
-    color: var(--text-primary);
+    color: #ffffff;
 }
 
 /* Friends List Item Styling */
