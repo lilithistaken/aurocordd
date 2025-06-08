@@ -1,2 +1,23 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Node.js environment files (commonly used to store secrets)
+.env
+.env.local
+.env.production
+.env.development
+
+# Firebase service account key (never expose this!)
+firebase-adminsdk*.json
+*.service-account.json
+
+# Optional: Ignore Firebase emulators/local settings
+.firebase/
+firebase-debug.log
+.firebaserc
+firebase-config.js
+
+
+# Optional: VSCode settings and logs
+.vscode/
+*.log

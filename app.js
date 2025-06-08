@@ -25,25 +25,17 @@ import {
     orderBy, // Needed for ordering messages by timestamp
     serverTimestamp // Needed for consistent timestamps
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-// Firebase Storage imports removed
-// import {
-//     getStorage,
-//     ref,
-//     uploadBytes,
-//     getDownloadURL,
-//     deleteObject
-// } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+import { firebaseConfig } from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
 
 
-// --- Global Variables (provided by the Canvas environment or defaults) ---
+// --- Global Variables ---
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-const firebaseConfig = {
-    apiKey: "AIzaSyBkU8GgOP09YYfOmdvpypPRoXYk-SUFqWI",
-    authDomain: "chatting-87797.firebaseapp.com",
-    projectId: "chatting-87797",
-    appId: "1:767603735256:web:14bf5c7696fa3f7e1835ad",
-};
+
 
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
@@ -103,7 +95,7 @@ const cancelSettingsButton = document.getElementById('cancelSettingsButton');
 
 /**
  * Displays a message to the user in a specified status area.
- * @param {HTMLElement} element - The HTML element (e.g., authStatusMessage, chatStatusMessage) to display the message in.
+ * @param {HTMLElement} element - The HTML element to display the message in.
  * @param {string} message - The message text to display.
  * @param {string} type - 'success', 'error', or 'info' to determine message color.
  */
@@ -134,7 +126,6 @@ function toggleUI(loggedIn) {
         emailInput.value = '';
         passwordInput.value = '';
         usernameInput.value = '';
-        // if (pfpInput) pfpInput.value = ''; // Removed
 
         console.log("UI switched to Chat view.");
     } else {
