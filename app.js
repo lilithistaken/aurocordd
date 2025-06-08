@@ -26,6 +26,7 @@ import {
     serverTimestamp // Needed for consistent timestamps
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
