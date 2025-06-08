@@ -657,6 +657,73 @@ async function saveSettings() {
     }
 }
 
+// ------------------- Friend Request UI Logic -------------------
+function renderFriendRequest(requesterId, displayName) {
+    const list = document.getElementById('friendRequestsList');
+    const li = document.createElement('li');
+    li.innerHTML = `
+        ${displayName} 
+        <button onclick="acceptFriendRequest('${requesterId}', '${displayName}')">Accept</button>
+        <button onclick="declineFriendRequest('${requesterId}')">Decline</button>
+    `;
+    list.appendChild(li);
+}
+
+function listenForFriendRequests() {
+    if (!currentUserId) return;
+    const requestsRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'friend_requests');
+    onSnapshot(requestsRef, (snapshot) => {
+        const list = document.getElementById('friendRequestsList');
+        list.innerHTML = '';
+        snapshot.forEach(docSnap => {
+            const request = docSnap.data();
+            renderFriendRequest(docSnap.id, request.displayName);
+        });
+    });
+}
+
+// Call this after login
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        listenForFriendRequests();
+    }
+});
+
+// ------------------- Group Chat Logic -------------------
+document.getElementById('createGroupSubmitButton').addEventListener('click', async () => {
+    const groupName = document.getElementById('groupNameInput').value.trim();
+    const memberIdsRaw = document.getElementById('groupMembersInput').value.trim();
+    const memberIds = memberIdsRaw.split(',').map(id => id.trim()).filter(Boolean);
+
+    const groupId = await createGroup(groupName, memberIds);
+    if (groupId) {
+        openGroupChat(groupId, groupName);
+    }
+});
+
+// ------------------- GIF Picker Logic -------------------
+document.getElementById('gifSearchButton').addEventListener('click', async () => {
+    const query = document.getElementById('gifSearchInput').value.trim();
+    const resultsContainer = document.getElementById('gifResults');
+    resultsContainer.innerHTML = 'Searching...';
+
+    try {
+        const gifs = await searchGIFs(query);
+        resultsContainer.innerHTML = '';
+        gifs.forEach(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.width = '100px';
+            img.style.margin = '5px';
+            img.style.cursor = 'pointer';
+            img.onclick = () => insertGifIntoMessage(url);
+            resultsContainer.appendChild(img);
+        });
+    } catch (err) {
+        resultsContainer.innerHTML = 'Failed to load GIFs';
+    }
+});
+
 
 // --- Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
