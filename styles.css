@@ -125,8 +125,8 @@ p {
 
 .message.self {
     align-self: flex-end;
-    background-color: var(--background-accent);
-    color: white;
+    background-color: #007334;
+    color: #a8d8a8;
 }
 
 .message.other {
