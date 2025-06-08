@@ -1,4 +1,5 @@
-// app.js
+// --- Tenor GIF API Key ---
+const TENOR_API_KEY = 'AIzaSyCnoEuNR2jhVdXVu78x1SAb1V9VLgFMye8'; // ← Replace this with your actual key
 
 // Import Firebase modules. Using the modular SDK.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -723,6 +724,12 @@ document.getElementById('gifSearchButton').addEventListener('click', async () =>
         resultsContainer.innerHTML = 'Failed to load GIFs';
     }
 });
+
+async function searchGIFs(query) {
+    const response = await fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=10`);
+    const data = await response.json();
+    return data.results.map(gif => gif.media[0].gif.url);
+}
 
 
 // --- Event Listeners ---
